@@ -13,7 +13,7 @@ const {
     class="flex flex-col gap-5 w-screen min-h-screen max-w-7xl m-auto justify-center items-center p-5"
   >
     <aside
-      class="w-full sticky top-5 pt-3 px-2 bg-[var(--colors-navbar-bg)] backdrop-blur-xl rounded-full"
+      class="w-full sticky top-5 pt-3 px-2 bg-[var(--colors-navbar-bg)] backdrop-blur-xl rounded-xl"
     >
       <NavigationBar
         :bookmark="bookmark"

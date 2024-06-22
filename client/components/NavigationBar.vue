@@ -12,7 +12,7 @@ const {
 
 <template>
   <nav
-    class="w-full px-2 flex flex-col gap-2 md:flex-row flex-wrap text-center justify-between items-center pb-3"
+    class="flex flex-row flex-wrap gap-2 text-center justify-center items-center pb-3"
   >
     <a
       href="/"
@@ -21,7 +21,9 @@ const {
       d
     </a>
     <form action="/search/pins" method="GET">
-      <fieldset class="flex flex-row gap-3 items-center justify-center w-full">
+      <fieldset
+        class="flex flex-row gap-3 group items-center justify-center max-w-5 w-fit"
+      >
         <label
           class="flex flex-row items-center justify-between bg-[var(--colors-navbar-bg-alt)] shadow-md px-4 py-3 rounded-full"
         >
@@ -31,15 +33,18 @@ const {
             />
           </button>
           <input
+            autocomplete="off"
             class="peer inline-block bg-transparent text-main-foreground placeholder:text-foreground-alt focus:outline-none text-sm placeholder:text-sm"
             type="search"
             name="q"
             placeholder="Search for pins"
             tabindex="0"
             required
+            :value="query"
+            id="search-bar"
           />
           <button
-            class="peer-invalid:opacity-0"
+            class="peer-invalid:hidden"
             type="reset"
             tabindex="0"
             value=""
@@ -50,22 +55,24 @@ const {
       </fieldset>
     </form>
     <div>
-      <a
-        id="search-next-page"
-        v-if="bookmark && bookmark !== 'null'"
-        :href="
-          '/search/pins?q=' +
-          encodeURIComponent(query) +
-          '&bookmarks=' +
-          encodeURIComponent(bookmark) +
-          '&csrftoken=' +
-          encodeURIComponent(csrftoken)
-        "
-        class="bg-accent px-4 py-3 rounded-full text-[var(--colors-black)] flex flex-row gap-2 items-center justify-center"
-      >
-        <ArrowRightIcon class="size-5" />
-        Next page
-      </a>
+      <noscript>
+        <a
+          id="search-next-page"
+          v-if="bookmark && bookmark !== 'null'"
+          :href="
+            '/search/pins?q=' +
+            encodeURIComponent(query) +
+            '&bookmarks=' +
+            encodeURIComponent(bookmark) +
+            '&csrftoken=' +
+            encodeURIComponent(csrftoken)
+          "
+          class="bg-accent px-4 py-3 rounded-full text-[var(--colors-black)] flex flex-row gap-2 items-center justify-center"
+        >
+          <ArrowRightIcon class="size-5" />
+          Next page
+        </a>
+      </noscript>
     </div>
   </nav>
 </template>

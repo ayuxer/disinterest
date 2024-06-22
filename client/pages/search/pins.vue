@@ -1,8 +1,46 @@
 <template>
   <Layout :query="query" :bookmark="bookmark" :csrftoken="csrftoken">
-    <ol
+    <masonry-wall
+      :items="results"
+      :gap="16"
+      :max-columns="6"
+      :min-columns="2"
+      :ssr-columns="2"
+      :column-width="100"
+      :rtl="false"
+    >
+      <template #default="{ item, index }">
+        <div
+          class="break-inside-avoid w-fit mb-6 flex flex-col items-center justify-center gap-2"
+          :style="{ height: `${item}px` }"
+        >
+          <a :href="item.pinUrl">
+            <img
+              :src="item.thumbnail || item.image"
+              class="rounded-xl w-64"
+              alt=""
+            />
+          </a>
+          <div class="w-0 min-w-full text-left text-sm">
+            <a :href="item.pinUrl" v-if="item.title">
+              <strong class="line-clamp-2 my-1">{{ item.title }}</strong>
+            </a>
+            <div
+              class="flex flex-row items-center gap-2"
+              v-if="item.pinner.name || item.pinner.username"
+            >
+              <img :src="item.pinner.image" class="w-8 rounded-full" alt="" />
+              <span class="line-clamp-1">{{
+                item.pinner.name ? item.pinner.name : "@" + item.pinner.username
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </template>
+    </masonry-wall>
+    <!-- <ol
       id="pin-list"
-      class="list-none columns-1 md:columns-4 lg:columns-6 gap-6"
+      class="list-none masonry"
     >
       <li
         v-for="item in results"
@@ -31,7 +69,7 @@
           </div>
         </div>
       </li>
-    </ol>
+    </ol> -->
   </Layout>
 </template>
 
@@ -106,7 +144,7 @@ export default {
           const res = await fetch(bookmarkedUrl);
           const json = await res.json();
           this.bookmark = json.bookmark;
-          this.results.push(...json.results);
+          this.results = [...this.results, ...json.results];
           this.reqs.push(bookmarkedUrl.toString());
         })();
       }

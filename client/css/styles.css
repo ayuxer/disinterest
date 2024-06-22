@@ -56,3 +56,13 @@ body {
   top: 0;
   z-index: 100;
 }
+
+.masonry {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 1fr);
+    grid-auto-rows: 10px;
+    gap: 20px;
+}
+.masonry > * {
+    
+}
