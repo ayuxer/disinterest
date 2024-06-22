@@ -2,21 +2,25 @@ import { type HttpError } from "@fastify/sensible";
 import { type FastifyInstance } from "fastify";
 import type { ReadableStream } from "stream/web";
 
-const hosts = ["pinimg.com", "i.pinimg.com", "pinterest.com"];
+const hosts = ["pinimg.com", "i.pinimg.com", "s.pinimg.com", "pinterest.com"];
 
 interface ProxiedImage {
   contentType: string;
   data: ReadableStream<Uint8Array>;
 }
 
+export function getProxiedUrl(baseUrl: string, path: string): string {
+  return baseUrl + "/img/proxied?url=" + path;
+}
+
 async function proxy(
   server: FastifyInstance,
-  url: URL,
+  url: URL
 ): Promise<HttpError | ProxiedImage> {
   if (!hosts.includes(url.hostname))
     return server.httpErrors.createError(
       400,
-      "Unsupported host; only Pinterest media can be proxied.",
+      "Unsupported host; only Pinterest media can be proxied."
     );
   const res = await fetch(url);
   if (!res.ok) {
@@ -47,8 +51,12 @@ export default (server: FastifyInstance) =>
       let { url = null } = req.query as any;
       try {
         url = new URL(url);
+        if (url.protocol !== "http:" && url.protocol !== "https:")
+          throw new Error("Invalid protocol");
       } catch (err) {
-        return reply.send(server.httpErrors.badRequest());
+        return reply.send(
+          server.httpErrors.badRequest("Given URL is invalid.")
+        );
       }
       const data = await proxy(server, url);
       if (!data.contentType) return reply.send(data);

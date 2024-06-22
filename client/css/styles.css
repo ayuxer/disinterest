@@ -1,3 +1,58 @@
+@import "@fontsource/work-sans";
+@import "@fontsource/pacifico";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --colors-main-background: theme("colors.slate.50");
+  --colors-background-alt: theme("colors.slate.200");
+  --colors-main-foreground: theme("colors.slate.950");
+  --colors-black: theme("colors.slate.950");
+  --colors-navbar-bg: rgba(2, 6, 23, 0.75);
+  --colors-navbar-bg-alt: rgba(226, 232, 240, 0.75);
+  --colors-foreground-alt: theme("colors.neutral.700");
+  --colors-accent: theme("colors.sky.600");
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --colors-main-background: theme("colors.neutral.900");
+    --colors-background-alt: theme("colors.neutral.800");
+    --colors-main-foreground: theme("colors.slate.200");
+    --colors-black: theme("colors.neutral.900");
+    --colors-navbar-bg: rgba(23, 23, 23, 0.75);
+    --colors-navbar-bg-alt: rgba(38, 38, 38, 0.75);
+    --colors-foreground-alt: theme("colors.neutral.500");
+    --colors-accent: theme("colors.sky.600");
+  }
+}
+
+html,
+body {
+  background-color: var(--colors-main-background);
+  color: var(--colors-main-foreground);
+  font-family: theme("fontFamily.sans");
+}
+
+body {
+  animation: fade-in ease 1s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+#nav-actual {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}

@@ -21,7 +21,7 @@ try {
   console.log(
     `baseUrl: Argument '${baseUrl}' doesn't follow URL pattern. Using default value instead...`
   );
-  baseUrl = "https://localhost:" + port;
+  baseUrl = "http://localhost:" + port;
 }
 
 const logger =
@@ -31,13 +31,11 @@ const logger =
 
 const server = fastify({ logger });
 
-await server
-  .register(fastifySensible)
-  .register(fastifyVite, {
-    root: fileURLToPath(new URL("..", import.meta.url)),
-    dev: process.argv.includes('--dev'),
-    renderer: "@fastify/vue"
-  });
+await server.register(fastifySensible).register(fastifyVite, {
+  root: fileURLToPath(new URL("..", import.meta.url)),
+  dev: process.argv.includes("--dev"),
+  renderer: "@fastify/vue",
+});
 await server.vite.ready();
 
 proxy(server);

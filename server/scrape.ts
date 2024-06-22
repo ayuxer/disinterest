@@ -1,5 +1,6 @@
 import { load } from "cheerio";
 import { type FastifyInstance } from "fastify";
+import { getProxiedUrl } from "./proxy";
 
 function isObject(item: unknown) {
   return item && typeof item === "object" && !Array.isArray(item);
@@ -24,7 +25,7 @@ function mergeDeep(target: object, ...sources: object[]) {
 async function scrape(
   server: FastifyInstance,
   baseUrl: string,
-  id: string | number,
+  id: string | number
 ) {
   const scraped = await fetch("https://www.pinterest.com/pin/" + id, {
     headers: {
@@ -40,7 +41,7 @@ async function scrape(
   const out: any = {};
   const text = $('script[type="application/json"]')
     .contents()
-    .map(function() {
+    .map(function () {
       return this.type === "text" ? $(this).text() : "";
     })
     .get();
@@ -48,7 +49,7 @@ async function scrape(
     try {
       const json = JSON.parse(input)?.response?.data;
       json && mergeDeep(out, json);
-    } catch (_) { }
+    } catch (_) {}
   });
   if (!out.v3GetPinQuery?.data) return server.httpErrors.notFound();
   const { data } = out.v3GetPinQuery;
@@ -66,25 +67,35 @@ async function scrape(
   if (!image) return {};
   return {
     tags: data.pinJoin.visualAnnotation,
-    title: data.gridTitle,
-    description:
-      data.richSummary ?? (data.gridDescription.trim() || "No description."),
+    title: data.gridTitle || null,
+    description: data.richSummary ?? (data.gridDescription.trim() || null),
     pinUrl: baseUrl + "/pin/" + id,
     url: baseUrl + "/pin/" + id,
-    image: baseUrl + "/img/proxied?url=" + image,
-    thumbnail: baseUrl + "/img/proxied?url=" + image,
+    image: getProxiedUrl(baseUrl, image),
+    thumbnail: getProxiedUrl(baseUrl, image),
     source: data.richSummary ?? "Pinterest",
+    pinner: {
+      name: data.pinner.full_name || null,
+      username: data.pinner.username || null,
+      image: getProxiedUrl(
+        baseUrl,
+        data.pinner.image_large_url ||
+          data.pinner.image_medium_url ||
+          data.pinner.image_small_url
+      ),
+    },
   };
 }
 
 export default (baseUrl: string, server: FastifyInstance) =>
-  server.get("/pin/:id", async (req, reply) => {
+  server.get("/pin.json/:id", async (req, reply) => {
     let { id = "" } = req.params as any;
     if (!id) return;
-    const isApi = id.endsWith(".json");
-    if (!isApi) return server.httpErrors.badRequest();
-    id = Number.parseInt(isApi ? id.slice(0, id.lastIndexOf(".json")) : id);
-    if (!id) return server.httpErrors.badRequest();
+    id = Number.parseInt(id);
+    if (!id)
+      return server.httpErrors.badRequest(
+        "id: given value is empty or not a number."
+      );
     const data = await scrape(server, baseUrl, id);
     return reply.send(data);
   });

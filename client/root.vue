@@ -1,7 +1,7 @@
 <script>
 export { default } from "/:router.vue";
 
-export function configure({ app, router }) {
-    
-}
+export const mount = "#root";
+
+export function configure({ app, router }) {}
 </script>

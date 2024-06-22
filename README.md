@@ -12,8 +12,8 @@ Privacy-respecting, anonymous, NoJS-supporting Pinterest frontend and API.
   - [ ] Search by tags
 - [ ] Frontend
   - [ ] Homepage
-  - [ ] Search (NoJS)
-  - [ ] Search (JS/Infinite scroll)
+  - [x] Search (NoJS)
+  - [x] Search (JS/Infinite scroll)
   - [ ] Pins
   - [ ] Theming
   - [ ] Search by tags

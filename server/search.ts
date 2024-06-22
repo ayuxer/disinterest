@@ -1,5 +1,6 @@
 import { type FastifyInstance } from "fastify";
 import type Pin from "./types";
+import { getProxiedUrl } from "./proxy";
 
 interface Search {
   results: Pin[];
@@ -10,44 +11,53 @@ async function search(
   baseUrl: string,
   query: string,
   bookmarks: string,
-  token: string,
+  token: string
 ): Promise<Search> {
   const queryData: any = {
     options: { query },
   };
-  if (bookmarks) queryData.options.bookmarks = bookmarks;
-  const headers: Record<string, string> = token
-    ? { csrftoken: token, cookie: "cookie:csrftoken=" + token }
-    : {};
-  const data = await fetch(
+  if (bookmarks && bookmarks !== "null")
+    queryData.options.bookmarks = [bookmarks];
+  const headers: Record<string, string> =
+    token && token !== "null"
+      ? { csrftoken: token, cookie: "cookie:csrftoken=" + token }
+      : {};
+  const url =
     "https://www.pinterest.com/resource/BaseSearchResource/get?data=" +
-      encodeURIComponent(JSON.stringify(query)),
-    {
-      headers,
-    },
-  );
+    encodeURIComponent(JSON.stringify(queryData));
+  const data = await fetch(url, { headers });
   const json: any = await data.json();
-  return {
+  const out = {
     results: await Promise.all(
-      json.resource_response?.data?.results?.map(async (v: any) =>
-        v.type === "story"
+      json.resource_response?.data?.results?.map(async (v: any) => {
+        return v.type === "story"
           ? []
           : [
               {
                 pinUrl: baseUrl + "/pin/" + v.id,
                 url: v.link || baseUrl + "/pin/" + v.id,
-                title: v.title || v.grid_title,
-                content:
-                  v.rich_summary || v.display_description || "No description.",
-                image: baseUrl + "/img/proxied?url=" + v.images.orig.url,
-                thumbnail: baseUrl + "/img/proxied?url=" + v.images["236x"].url,
+                title: v.title || v.grid_title || null,
+                content: v.rich_summary || v.display_description || null,
+                image: getProxiedUrl(baseUrl, v.images.orig.url),
+                thumbnail: getProxiedUrl(baseUrl, v.images["236x"].url),
                 source: v.rich_summary || v.site_name,
+                pinner: {
+                  name: v.pinner.full_name || null,
+                  username: v.pinner.username || null,
+                  image: getProxiedUrl(
+                    baseUrl,
+                    v.pinner.image_large_url ||
+                      v.pinner.image_medium_url ||
+                      v.pinner.image_small_url
+                  ),
+                },
               },
-            ],
-      ),
+            ];
+      })
     ).then((arr) => arr.flat()),
     bookmark: json.resource_response?.bookmark,
   };
+  return out;
 }
 
 export default (baseUrl: string, server: FastifyInstance) =>
@@ -67,7 +77,8 @@ export default (baseUrl: string, server: FastifyInstance) =>
     },
     handler: async (req, reply) => {
       const { q = "", csrftoken = "", bookmarks = "" } = req.query as any;
-      if (!q) return server.httpErrors.badRequest();
+      if (!q)
+        return server.httpErrors.badRequest("q: given parameter is empty.");
       return reply.send(await search(baseUrl, q, bookmarks, csrftoken));
     },
   });
